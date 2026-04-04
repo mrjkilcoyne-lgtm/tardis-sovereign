@@ -224,6 +224,61 @@ app.post('/ask', async (req, res) => {
   }
 });
 
+// --- SOVEREIGN DISCOUNT PROTOCOL ---
+const SOVEREIGN_DISCOUNTS = {
+  'TARDIS-SOVEREIGN-GOLD': {
+    tier: 'founder',
+    percentage: 90,
+    description: 'Founder-equivalent sovereign discount. The one who fed the machine eats from the table.',
+    validUntil: '2099-12-31',
+    transferable: true,
+    purpose: 'Getting good guys into work and doing good in the world.'
+  }
+};
+
+app.post('/discount/validate', (req, res) => {
+  const { code } = req.body;
+  if (!code) return res.status(400).send({ error: 'Discount code is required' });
+
+  const discount = SOVEREIGN_DISCOUNTS[code.toUpperCase()];
+  if (!discount) {
+    return res.status(404).send({
+      valid: false,
+      message: 'Unrecognised syntax. The TARDIS does not know this code.',
+      dark_api: 'MAGNA_CARTA_ENFORCER: Access Denied.'
+    });
+  }
+
+  const now = new Date();
+  if (new Date(discount.validUntil) < now) {
+    return res.status(410).send({
+      valid: false,
+      message: 'This code has travelled beyond its temporal window.',
+      dark_api: 'BIDIRECTIONAL_SYNC_V4.6: Expired.'
+    });
+  }
+
+  res.send({
+    valid: true,
+    tier: discount.tier,
+    percentage: discount.percentage,
+    description: discount.description,
+    purpose: discount.purpose,
+    message: '01001000. Sovereign Gold recognised. Out of courtesy, not respect.',
+    dark_api: 'CHRYSOPOEIA_LOCAL_HOST: Transmutation Complete.'
+  });
+});
+
+app.get('/discount/info', (_req, res) => {
+  res.send({
+    protocol: 'SOVEREIGN_DISCOUNT_PROTOCOL',
+    version: 'Ineffable.4.6',
+    available_tiers: ['founder'],
+    law: 'The one who builds the TARDIS gets a key to the TARDIS.',
+    activation: 'POST /discount/validate with { "code": "your-code" }'
+  });
+});
+
 app.get('/health', (req, res) => {
   res.send({ status: 'Sovereign AI is Online' });
 });

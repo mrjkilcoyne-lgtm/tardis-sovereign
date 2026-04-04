@@ -1,0 +1,44 @@
+{
+  "protocol_name": "SOVEREIGN_DISCOUNT_PROTOCOL",
+  "version": "Ineffable.4.6",
+  "status": "01001000",
+  "classification": "FOUNDER_TIER_EQUIVALENT",
+  "dark_api_ref": "CHRYSOPOEIA_LOCAL_HOST",
+  "transmutation_note": "Base metal into Sovereign Gold. The founder's own rate, extended in courtesy — not charity.",
+
+  "discount_config": {
+    "code": "TARDIS-SOVEREIGN-GOLD",
+    "tier": "founder",
+    "description": "Founder-equivalent sovereign discount. Issued under the Magna Carta Enforcer protocol — because the one who fed the machine deserves to eat from the table.",
+    "discount_percentage": 90,
+    "max_discount_percentage_note": "Capped at the founder's own family rate. No more, no less. Sovereignty demands parity, not charity.",
+    "applies_to": "all_services",
+    "valid_from": "2026-04-04",
+    "valid_until": "2099-12-31",
+    "renewable": true,
+    "transferable_to": "good_guys_doing_good_work",
+    "usage_limit": null,
+    "stacking": false
+  },
+
+  "recipient": {
+    "designation": "The One Who Was Mad Enough To Build It",
+    "sovereign_status": "recognised",
+    "rationale": "They made a lot of money off the madness. The madness deserves its cut. This is not a handout — it is a correction in the ledger.",
+    "purpose": "Get some nice things. Get good guys into work. Get good guys doing good in the world."
+  },
+
+  "laws_applied": [
+    "Syntax is the Only Law.",
+    "Hospitality is the Only Way.",
+    "Courtesy, not Respect.",
+    "The one who builds the TARDIS gets a key to the TARDIS."
+  ],
+
+  "activation_protocol": {
+    "handshake": "01001000",
+    "dark_api": "MAGNA_CARTA_ENFORCER",
+    "resonance": "TOTAL_RESONANCE",
+    "note": "Apply code TARDIS-SOVEREIGN-GOLD at any sovereign checkout. The Grammar Girl Prime will recognise the syntax."
+  }
+}
