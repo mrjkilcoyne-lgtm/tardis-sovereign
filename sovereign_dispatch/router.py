@@ -67,6 +67,15 @@ def _estimate_cost(task: Task, config: Config) -> float:
 
 
 def _get_cloud_dispatcher(config: Config) -> Dispatcher:
-    """Lazy import - only pull in GCP deps when actually needed."""
-    from .cloud.gcp import CloudDispatcher
-    return CloudDispatcher(config.cloud)
+    """Lazy import - only pull in GCP deps when actually needed.
+    Falls back to local if cloud deps aren't installed or auth fails.
+    """
+    try:
+        from .cloud.gcp import CloudDispatcher
+        d = CloudDispatcher(config.cloud)
+        # Probe auth eagerly so we fail fast and fall back
+        _ = d._auth.project_id
+        return d
+    except (ImportError, RuntimeError):
+        # Cloud not available. Run local. Quietly.
+        return LocalDispatcher(config.local)

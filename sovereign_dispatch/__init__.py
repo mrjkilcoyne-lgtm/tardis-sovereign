@@ -9,6 +9,7 @@ Usage:
 
 from __future__ import annotations
 
+from .adaptive import AdaptiveConfig, detect_runtime
 from .budget import BudgetExhausted, BudgetTracker
 from .cache import ResultCache
 from .compress import content_hash
@@ -20,14 +21,16 @@ from .router import route
 _config: Config | None = None
 _budget: BudgetTracker | None = None
 _cache: ResultCache | None = None
+_adaptive: AdaptiveConfig | None = None
 
 
 def _ensure_init(config_path: str | None = None):
-    global _config, _budget, _cache
+    global _config, _budget, _cache, _adaptive
     if _config is None or config_path:
         _config = load_config(config_path)
         _budget = BudgetTracker(_config.budget)
         _cache = ResultCache(_config.cache)
+        _adaptive = AdaptiveConfig()
 
 
 def dispatch(
@@ -55,7 +58,9 @@ def dispatch(
     """
     _ensure_init(config_path)
 
-    task = Task(code=code, kind=kind, hints=hints or {}, payload=payload)
+    # 0. Adapt hints to what this environment can actually do
+    adapted_hints = _adaptive.adapt_task_hints(hints or {})
+    task = Task(code=code, kind=kind, hints=adapted_hints, payload=payload)
 
     # 1. Cache check - zero cost if we've seen this before
     cache_key = content_hash(code, payload)
@@ -101,9 +106,16 @@ def clear_cache(config_path: str | None = None) -> int:
     return _cache.evict_expired()
 
 
+def get_runtime(config_path: str | None = None) -> dict:
+    """What can this environment do right now?"""
+    _ensure_init(config_path)
+    return _adaptive.status()
+
+
 __all__ = [
     "dispatch",
     "get_budget",
+    "get_runtime",
     "clear_cache",
     "Task",
     "DispatchResult",
