@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: sovereign-dispatch
+  namespace: tardis-sovereign
+  labels:
+    app.kubernetes.io/name: sovereign-dispatch
+    app.kubernetes.io/part-of: tardis-sovereign
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: sovereign-dispatch
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP

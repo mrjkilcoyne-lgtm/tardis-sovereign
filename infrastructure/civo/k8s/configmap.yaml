@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sovereign-dispatch-config
+  namespace: tardis-sovereign
+  labels:
+    app.kubernetes.io/name: sovereign-dispatch
+    app.kubernetes.io/part-of: tardis-sovereign
+data:
+  default.yaml: |
+    # Sovereign Dispatch - Civo Deployment Configuration
+    # Tuned for low-cost UK-sovereign cloud operation
+
+    local:
+      timeout_seconds: 30
+      max_memory_mb: 256
+      max_concurrent: 4
+      python_path: null
+
+    cloud:
+      provider: civo
+      project_id: null
+      region: LON1
+      escalation_threshold_seconds: 10
+      escalation_threshold_memory_mb: 512
+
+    budget:
+      max_daily_usd: 2.00
+      max_monthly_usd: 20.00
+      warn_at_percent: 80
+      ledger_path: /data/ledger.db
+
+    cache:
+      enabled: true
+      db_path: /data/cache.db
+      max_size_mb: 128
+      ttl_seconds: 3600
+
+    compress:
+      diff_only: true
+      min_compress_bytes: 1024

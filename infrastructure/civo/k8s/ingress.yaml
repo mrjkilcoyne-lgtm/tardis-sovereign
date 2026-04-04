@@ -1,0 +1,34 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: sovereign-dispatch
+  namespace: tardis-sovereign
+  labels:
+    app.kubernetes.io/name: sovereign-dispatch
+    app.kubernetes.io/part-of: tardis-sovereign
+  annotations:
+    # Traefik is the default ingress controller on Civo k3s
+    kubernetes.io/ingress.class: traefik
+    # TLS via Let's Encrypt (Traefik built-in)
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt
+    # Redirect HTTP to HTTPS
+    traefik.ingress.kubernetes.io/router.middlewares: tardis-sovereign-redirect-https@kubernetescrd
+spec:
+  tls:
+    - hosts:
+        # Replace with your actual domain or use the Civo DNS entry
+        - tardis-sovereign.example.com
+      secretName: sovereign-dispatch-tls
+  rules:
+    - host: tardis-sovereign.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: sovereign-dispatch
+                port:
+                  name: http
