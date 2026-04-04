@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0a0a">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Psychic Paper</title>
+<style>
+:root{--pri:#1a1a2e;--acc:#e94560;--bg:#fff;--txt:#1a1a1a;--txtL:#666;--morph:0.6s cubic-bezier(.22,1,.36,1)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:#0a0a0a;min-height:100vh;min-height:100dvh;color:#fff;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+.app{display:flex;flex-direction:column;min-height:100vh;min-height:100dvh}
+
+/* Setup */
+.setup{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px}
+.setup h1{font-size:24px;font-weight:300;margin-bottom:4px;letter-spacing:1px}
+.setup p{color:#666;font-size:13px;margin-bottom:32px}
+.setup-form{width:100%;max-width:340px}
+.setup-form label{display:block;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#666;margin-bottom:4px;margin-top:16px}
+.setup-form input{width:100%;background:#111;border:1px solid #222;color:#fff;padding:12px 16px;border-radius:10px;font-size:16px;outline:none;transition:border .2s}
+.setup-form input:focus{border-color:#444}
+.setup-btn{width:100%;margin-top:28px;background:#fff;color:#000;border:none;padding:14px;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s}
+.setup-btn:active{transform:scale(.97);opacity:.8}
+
+/* Main */
+.main{flex:1;display:flex;flex-direction:column;padding:16px 16px 0}
+.situation-bar{position:relative;margin-bottom:16px}
+.situation-bar input{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);color:#fff;padding:14px 16px;border-radius:14px;font-size:15px;outline:none;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);transition:border .2s}
+.situation-bar input:focus{border-color:rgba(255,255,255,.2)}
+.situation-bar input::placeholder{color:rgba(255,255,255,.25)}
+
+/* Paper Container */
+.paper-wrap{flex:1;display:flex;align-items:center;justify-content:center;perspective:1200px;padding:8px 0}
+.paper{width:100%;max-width:400px;transition:all var(--morph);transform-style:preserve-3d}
+.paper.morphing{animation:morph .6s ease-in-out}
+@keyframes morph{0%{transform:scale(1) rotateY(0);opacity:1}50%{transform:scale(.93) rotateY(90deg);opacity:.3}100%{transform:scale(1) rotateY(0);opacity:1}}
+
+/* Document Layouts */
+.doc{position:relative;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.04)}
+
+/* Card */
+.layout-card .doc{background:var(--bg);border-radius:14px;padding:24px;aspect-ratio:86/54;display:flex;flex-direction:column;justify-content:space-between}
+
+/* Ticket */
+.layout-ticket .doc{background:var(--bg);border-radius:16px;display:flex;min-height:180px}
+.ticket-main{flex:1;padding:20px 24px;display:flex;flex-direction:column;justify-content:space-between}
+.ticket-stub{width:96px;background:var(--pri);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 8px;position:relative}
+.ticket-stub::before{content:'';position:absolute;left:-8px;top:50%;transform:translateY(-50%);width:16px;height:16px;background:#0a0a0a;border-radius:50%}
+.ticket-perf{position:absolute;right:96px;top:0;bottom:0;width:1px;background:repeating-linear-gradient(to bottom,transparent,transparent 4px,rgba(0,0,0,.12) 4px,rgba(0,0,0,.12) 8px)}
+
+/* Badge */
+.layout-badge .doc{background:var(--bg);border-radius:12px 12px 24px 24px;display:flex;flex-direction:column;min-height:300px}
+.badge-lanyard{width:28px;height:18px;background:var(--pri);margin:0 auto;border-radius:0 0 4px 4px;position:relative}
+.badge-lanyard::after{content:'';position:absolute;top:-36px;left:50%;transform:translateX(-50%);width:2px;height:36px;background:linear-gradient(to bottom,transparent,var(--pri))}
+.badge-header{background:var(--pri);color:#fff;padding:16px 24px;text-align:center}
+.badge-body{padding:20px 24px;flex:1;display:flex;flex-direction:column;justify-content:space-between}
+
+/* Full */
+.layout-full .doc{background:var(--bg);border-radius:4px;padding:28px;min-height:300px;border:2px solid var(--pri)}
+.layout-full .doc::before{content:'';position:absolute;inset:8px;border:1px solid rgba(0,0,0,.08);pointer-events:none}
+
+/* Fields */
+.fld{margin-bottom:6px}
+.fld-l{font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--txtL);margin-bottom:1px}
+.fld-v{font-size:13px;color:var(--txt);font-weight:500}
+.fld-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px}
+.doc-title{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--pri);opacity:.6}
+.doc-name{font-size:21px;font-weight:700;color:var(--txt);letter-spacing:.3px}
+.doc-bar{height:3px;background:var(--acc);border-radius:2px;margin:8px 0}
+.doc-hash{font-family:'Courier New',monospace;font-size:7px;color:var(--txtL);opacity:.4;letter-spacing:1px}
+
+/* Hologram */
+.holo{position:absolute;width:44px;height:44px;border-radius:50%;background:conic-gradient(from 0deg,rgba(255,0,0,.12),rgba(0,255,0,.12),rgba(0,0,255,.12),rgba(255,0,0,.12));animation:holo 3s linear infinite;opacity:.5}
+@keyframes holo{to{transform:rotate(360deg)}}
+
+/* QR */
+.qr{width:56px;height:56px;background:#fff;padding:3px;border-radius:3px}
+.qr canvas{width:100%!important;height:100%!important;display:block}
+
+/* Pills */
+.pills{display:flex;gap:6px;padding:12px 16px 28px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.pills::-webkit-scrollbar{display:none}
+.pill{flex-shrink:0;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.6);padding:8px 16px;border-radius:20px;font-size:12px;cursor:pointer;transition:all .15s;font-family:inherit;letter-spacing:.3px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.pill:active,.pill.active{background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.2)}
+
+/* Ambient */
+.paper-wrap::after{content:'';position:fixed;width:200px;height:200px;background:radial-gradient(circle,var(--acc),transparent 70%);opacity:.04;filter:blur(60px);pointer-events:none;top:50%;left:50%;transform:translate(-50%,-50%)}
+
+/* Settings gear */
+.gear{position:fixed;top:16px;right:16px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.05);border-radius:50%;cursor:pointer;font-size:14px;opacity:.3;transition:opacity .2s;z-index:10}
+.gear:hover,.gear:active{opacity:.7}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+// ── Document Types ──
+const TYPES={
+press_pass:{id:'press_pass',name:'Press Credentials',layout:'badge',pri:'#1a1a2e',acc:'#0f3460',bg:'#f5f5f0',kw:['press','media','journalist','reporter','briefing'],fields:['name','title','org','press_id','valid_date','zone'],auto:['press_id'],holo:false,photo:true},
+event_ticket:{id:'event_ticket',name:'Event Ticket',layout:'ticket',pri:'#16213e',acc:'#e94560',bg:'#fff',kw:['event','concert','show','gig','festival','theatre','match','game'],fields:['event_name','venue','date','time','seat','ticket_type','ticket_id','holder'],auto:['ticket_id'],holo:false},
+boarding_pass:{id:'boarding_pass',name:'Boarding Pass',layout:'ticket',pri:'#0b0c10',acc:'#66fcf1',bg:'#f8f9fa',kw:['flight','boarding','airline','airport','departure','gate'],fields:['passenger','flight','from_city','to_city','date','gate','seat','class_type','booking_ref'],auto:['booking_ref'],holo:false},
+driving_licence:{id:'driving_licence',name:'Driving Licence',layout:'card',pri:'#003078',acc:'#d4351c',bg:'#fff',kw:['driving','licence','license','drive','vehicle','car'],fields:['surname','forenames','dob','issue_date','expiry_date','licence_number','address','categories'],auto:['licence_number','dob','issue_date','expiry_date'],holo:true},
+membership:{id:'membership',name:'Membership Card',layout:'card',pri:'#2d2d2d',acc:'#c9a84c',bg:'#1a1a1a',kw:['member','membership','club','gym','library','society'],fields:['name','member_id','org','tier','since','expiry'],auto:['member_id','since','expiry'],holo:false,dark:true},
+security_badge:{id:'security_badge',name:'Security Clearance',layout:'badge',pri:'#1b1b2f',acc:'#e43f5a',bg:'#f0f0f0',kw:['security','clearance','access','restricted','authorised','classified','facility'],fields:['name','clearance_level','department','badge_id','issue_date','expiry_date'],auto:['badge_id','issue_date','expiry_date'],holo:true},
+transport_pass:{id:'transport_pass',name:'Transport Pass',layout:'card',pri:'#003078',acc:'#e21836',bg:'#fff',kw:['transport','bus','train','tube','metro','oyster','rail','transit'],fields:['name','pass_type','zones','valid_from','valid_to','pass_id'],auto:['pass_id','valid_from','valid_to'],holo:false},
+conference_badge:{id:'conference_badge',name:'Conference Badge',layout:'badge',pri:'#2c3e50',acc:'#3498db',bg:'#ecf0f1',kw:['conference','delegate','summit','symposium','workshop','seminar','keynote','speaker'],fields:['name','title','org','role','event_name','date','badge_id'],auto:['badge_id'],holo:false},
+permit:{id:'permit',name:'Permit',layout:'full',pri:'#1a472a',acc:'#2a623d',bg:'#fefef9',kw:['permit','permission','authorisation','authorization','approved','granted'],fields:['holder','permit_type','description','issuing_authority','permit_number','issue_date','expiry_date','conditions'],auto:['permit_number','issue_date','expiry_date'],holo:true},
+invitation:{id:'invitation',name:'Invitation',layout:'card',pri:'#2c2c54',acc:'#d4a574',bg:'#faf8f5',kw:['invitation','invite','reception','gala','dinner','ceremony','opening'],fields:['guest','event','host','venue','date','time','dress_code','rsvp_id'],auto:['rsvp_id'],holo:false}
+};
+
+const PILLS=[
+{label:'Press',sit:'press media briefing'},{label:'Concert',sit:'concert show tonight'},
+{label:'Flight',sit:'boarding flight airport'},{label:'Security',sit:'security clearance restricted facility'},
+{label:'Conference',sit:'delegate at summit'},{label:'Travel',sit:'train tube transport'},
+{label:'Driving',sit:'driving licence'},{label:'Member',sit:'membership club'},
+{label:'Invite',sit:'invitation gala dinner'},{label:'Permit',sit:'permit authorization'}
+];
+
+// ── State ──
+let identity=JSON.parse(localStorage.getItem('pp_identity')||'null');
+let currentType=null;
+let currentDoc=null;
+
+// ── Detect ──
+function detect(text){
+  text=text.toLowerCase();
+  let best=null,bestScore=0;
+  for(const[id,t]of Object.entries(TYPES)){
+    let s=0;
+    for(const kw of t.kw){if(text.includes(kw))s+=10;if(new RegExp('\\b'+kw+'\\b').test(text))s+=5}
+    if(s>bestScore){bestScore=s;best=t}
+  }
+  return best||TYPES.conference_badge;
+}
+
+// ── Generate ──
+function genId(prefix){return prefix+'-'+String(Date.now()%10000000).padStart(7,'0')}
+function genRef(){const c='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';let r='';for(let i=0;i<6;i++)r+=c[Math.random()*c.length|0];return r}
+function genDate(future){const d=new Date();if(future)d.setDate(d.getDate()+Math.random()*900+90);else d.setDate(d.getDate()-Math.random()*700-30);return d.toLocaleDateString('en-GB')}
+function genDob(){const d=new Date();d.setFullYear(d.getFullYear()-30-Math.random()*15|0);return d.toLocaleDateString('en-GB')}
+function genLicNo(name){return(name||'SMITH').substring(0,5).toUpperCase().padEnd(5,'X')+(600000+Math.random()*399999|0)}
+
+function autoVal(field,type){
+  const m={press_id:()=>genId('PR'),ticket_id:()=>genId('TK'),booking_ref:genRef,licence_number:()=>genLicNo(identity?.name),
+    member_id:()=>genId('MEM'),badge_id:()=>genId('SC'),pass_id:()=>genId('TP'),permit_number:()=>genId('PMT'),rsvp_id:()=>genId('RSV'),
+    dob:genDob,issue_date:()=>genDate(false),expiry_date:()=>genDate(true),valid_from:()=>genDate(false),valid_to:()=>genDate(true),since:()=>genDate(false),expiry:()=>genDate(true),valid_date:()=>new Date().toLocaleDateString('en-GB')};
+  return m[field]?m[field]():'';
+}
+
+const DEFAULTS={zone:'All Areas',seat:'General Admission',class_type:'Standard',tier:'Standard',role:'Delegate',categories:'B, B1',ticket_type:'Standard',zones:'1-6',pass_type:'Annual',clearance_level:'Authorised',department:'General',dress_code:'Smart Casual',conditions:'Standard terms apply',time:'19:00',gate:String(1+Math.random()*59|0),description:'General authorisation',issuing_authority:'HM Government',permit_type:'General Access',host:'The Committee',venue:'TBC'};
+const NAME_FIELDS=['name','holder','passenger','guest','surname'];
+const ORG_FIELDS=['org','event_name'];
+
+function generate(type){
+  const vals={};
+  for(const f of type.fields){
+    if(type.auto?.includes(f)){vals[f]=autoVal(f,type)}
+    else if(NAME_FIELDS.includes(f)){vals[f]=identity?.name||'—'}
+    else if(f==='forenames'){vals[f]=identity?.name?.split(' ').slice(0,-1).join(' ')||'—'}
+    else if(f==='surname'&&identity?.name){vals[f]=identity.name.split(' ').pop()||'—';vals.forenames=identity.name.split(' ').slice(0,-1).join(' ')||''}
+    else if(ORG_FIELDS.includes(f)){vals[f]=identity?.org||'—'}
+    else if(f==='title'){vals[f]=identity?.title||'—'}
+    else if(f==='address'){vals[f]=identity?.address||'London, UK'}
+    else if(DEFAULTS[f]){vals[f]=DEFAULTS[f]}
+    else if(f==='date'){vals[f]=new Date().toLocaleDateString('en-GB')}
+    else{vals[f]='—'}
+  }
+  const hash=Array.from(JSON.stringify(vals)+Date.now()).reduce((a,c)=>((a<<5)-a)+c.charCodeAt(0),0).toString(16).replace('-','').substring(0,12);
+  return{type,vals,hash,qr:'TARDIS|'+type.id+'|'+hash};
+}
+
+// ── QR ──
+function drawQR(canvas,text){
+  if(!canvas)return;
+  const sz=200,n=21,cs=sz/n;
+  const ctx=canvas.getContext('2d');
+  canvas.width=canvas.height=sz;
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,sz,sz);
+  ctx.fillStyle='#000';
+  for(let y=0;y<n;y++)for(let x=0;x<n;x++){
+    if(((x*7+y*13+x*y)^(text.charCodeAt((x+y)%text.length)||0))&1)
+      ctx.fillRect(x*cs,y*cs,cs+.5,cs+.5);
+  }
+}
+
+// ── Render ──
+function fld(label,value){return`<div class="fld"><div class="fld-l">${label.replace(/_/g,' ')}</div><div class="fld-v">${value}</div></div>`}
+function renderDoc(doc){
+  const t=doc.type,v=doc.vals,h=doc.hash;
+  const holoHTML=t.holo?'<div class="holo" style="position:absolute;top:12px;right:12px"></div>':'';
+  const qrHTML='<div class="qr"><canvas class="qr-c"></canvas></div>';
+  const hashHTML=`<div class="doc-hash">${h}</div>`;
+  const mainName=v.name||v.holder||v.passenger||v.guest||((v.forenames||'')+' '+(v.surname||'')).trim()||'—';
+  const extras=Object.entries(v).filter(([k])=>!NAME_FIELDS.includes(k)&&k!=='forenames'&&k!=='photo');
+
+  if(t.layout==='card'){
+    const isDark=t.dark;
+    return`<div class="layout-card"><div class="doc" style="--pri:${t.pri};--acc:${t.acc};--bg:${t.bg};--txt:${isDark?'#e0e0e0':'#1a1a1a'};--txtL:${isDark?'#888':'#666'}">
+      <div><div class="doc-title">${t.name}</div><div class="doc-bar"></div><div class="doc-name">${mainName}</div></div>
+      <div class="fld-grid">${extras.slice(0,6).map(([k,val])=>fld(k,val)).join('')}</div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-end">${hashHTML}${qrHTML}</div>
+      ${holoHTML}</div></div>`;
+  }
+  if(t.layout==='ticket'){
+    const stubId=v.ticket_id||v.booking_ref||h;
+    return`<div class="layout-ticket"><div class="doc" style="--pri:${t.pri};--acc:${t.acc};--bg:${t.bg}">
+      <div class="ticket-main"><div><div class="doc-title">${t.name}</div><div class="doc-bar"></div><div class="doc-name">${v.event_name||v.passenger||mainName}</div></div>
+      <div class="fld-grid">${extras.filter(([k])=>k!=='event_name'&&k!=='ticket_id'&&k!=='booking_ref').slice(0,6).map(([k,val])=>fld(k,val)).join('')}</div>
+      ${hashHTML}</div><div class="ticket-perf"></div>
+      <div class="ticket-stub">${qrHTML}<div style="color:rgba(255,255,255,.6);font-size:8px;letter-spacing:1px;text-align:center;margin-top:6px;word-break:break-all">${stubId}</div></div></div></div>`;
+  }
+  if(t.layout==='badge'){
+    const org=v.org||v.event_name||v.department||'';
+    const role=v.role||v.clearance_level||v.title||'';
+    const other=extras.filter(([k])=>!['org','event_name','department','role','clearance_level','title','badge_id','press_id'].includes(k)).slice(0,4);
+    return`<div class="layout-badge"><div class="badge-lanyard"></div><div class="doc" style="--pri:${t.pri};--acc:${t.acc};--bg:${t.bg}">
+      <div class="badge-header"><div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;opacity:.6;margin-bottom:3px">${t.name}</div><div style="font-size:13px;font-weight:600">${org}</div></div>
+      <div class="badge-body"><div style="text-align:center;margin:14px 0"><div class="doc-name" style="font-size:24px">${mainName}</div>
+      ${role?`<div style="font-size:13px;color:${t.acc};font-weight:600;margin-top:3px;letter-spacing:.5px">${role}</div>`:''}</div>
+      <div class="fld-grid">${other.map(([k,val])=>fld(k,val)).join('')}</div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:10px">${hashHTML}${qrHTML}</div></div>
+      ${holoHTML}</div></div>`;
+  }
+  if(t.layout==='full'){
+    return`<div class="layout-full"><div class="doc" style="--pri:${t.pri};--acc:${t.acc};--bg:${t.bg}">
+      <div style="text-align:center;margin-bottom:18px"><div class="doc-title" style="font-size:12px;margin-bottom:6px">${t.name}</div><div class="doc-bar" style="width:60px;margin:0 auto"></div></div>
+      <div class="fld-grid" style="gap:10px 20px">${extras.map(([k,val])=>fld(k,val)).join('')}</div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:18px;padding-top:10px;border-top:1px solid rgba(0,0,0,.08)">${hashHTML}${qrHTML}</div>
+      ${holoHTML}</div></div>`;
+  }
+}
+
+// ── App ──
+function renderSetup(){
+  document.getElementById('app').innerHTML=`<div class="setup">
+    <h1>Psychic Paper</h1><p>Set your identity. It remembers.</p>
+    <div class="setup-form">
+      <label>Name</label><input id="s-name" placeholder="Dr John Smith" value="${identity?.name||''}">
+      <label>Organisation</label><input id="s-org" placeholder="UNIT" value="${identity?.org||''}">
+      <label>Title</label><input id="s-title" placeholder="Scientific Advisor" value="${identity?.title||''}">
+      <button class="setup-btn" onclick="saveIdentity()">Continue</button>
+    </div></div>`;
+}
+
+function saveIdentity(){
+  identity={name:document.getElementById('s-name').value,org:document.getElementById('s-org').value,title:document.getElementById('s-title').value};
+  localStorage.setItem('pp_identity',JSON.stringify(identity));
+  renderMain();
+}
+
+function renderMain(){
+  document.getElementById('app').innerHTML=`<div class="app">
+    <div class="gear" onclick="renderSetup()">&#9881;</div>
+    <div class="main">
+      <div class="situation-bar"><input id="sit" placeholder="What's the situation?" autocomplete="off"></div>
+      <div class="paper-wrap"><div class="paper" id="paper"></div></div>
+    </div>
+    <div class="pills" id="pills">${PILLS.map(p=>`<button class="pill" data-sit="${p.sit}">${p.label}</button>`).join('')}</div>
+  </div>`;
+
+  // Default document
+  morph('delegate at summit');
+
+  // Events
+  let timer;
+  document.getElementById('sit').addEventListener('input',e=>{
+    clearTimeout(timer);
+    timer=setTimeout(()=>morph(e.target.value),400);
+  });
+  document.getElementById('pills').addEventListener('click',e=>{
+    if(!e.target.classList.contains('pill'))return;
+    document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));
+    e.target.classList.add('active');
+    document.getElementById('sit').value='';
+    morph(e.target.dataset.sit);
+  });
+}
+
+function morph(situation){
+  if(!situation.trim())return;
+  const type=detect(situation);
+  if(currentType===type.id)return;
+  currentType=type.id;
+  const paper=document.getElementById('paper');
+  paper.classList.add('morphing');
+  setTimeout(()=>{
+    currentDoc=generate(type);
+    paper.innerHTML=renderDoc(currentDoc);
+    document.documentElement.style.setProperty('--acc',type.acc);
+    const c=paper.querySelector('.qr-c');
+    if(c)drawQR(c,currentDoc.qr);
+    setTimeout(()=>paper.classList.remove('morphing'),50);
+  },300);
+}
+
+// ── Init ──
+if(identity)renderMain();else renderSetup();
+
+// ── SW ──
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
