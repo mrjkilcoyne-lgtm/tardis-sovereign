@@ -9,5 +9,9 @@ Fixed points and multiplicities. Time runs both ways.
 
 from .scanner import scan_opportunities, OpportunityBriefing
 from .strategies import STRATEGIES
+from .trades import TradeBook, RiskProfile, evaluate_trade, compound
 
-__all__ = ["scan_opportunities", "OpportunityBriefing", "STRATEGIES"]
+__all__ = [
+    "scan_opportunities", "OpportunityBriefing", "STRATEGIES",
+    "TradeBook", "RiskProfile", "evaluate_trade", "compound",
+]
