@@ -23,7 +23,10 @@ LAYER 4: REVENUE STREAMS (Apps that make money)
   nssLocalWebBuilder — drag-and-drop website builder (SaaS)
 
 LAYER 3: AI & INTELLIGENCE
-  LGM              — Large Grammar Model (your custom AI brain)
+  LGM              — Large Grammar Model (cloud AI brain)
+  MKAngel/GLM      — On-device Grammar Language Model (~370K params, pure Python)
+                     7 domain grammars, Proto-Indo-European root tracing,
+                     Strange Loop detection, FugueAttention — NO CLOUD, NO API
   Block Prophet     — MCTS inference reasoning engine
   The Luggage       — autonomous AI agent platform (MCP-native)
   + SakanaAI AI-Scientist-v2 (starred — automated research)
@@ -38,7 +41,6 @@ LAYER 2: INFRASTRUCTURE
   + changedetection.io (starred — monitoring)
 
 LAYER 1: SECURITY & IDENTITY
-  MKAngel           — Android incident tracking/security
   Sentinel          — "the good stuff"
   KilcoyneWatcher   — monitoring
   Digital ID Holder — identity management
@@ -166,10 +168,20 @@ What actually runs in the TARDIS cluster:
 ### AI Services (Layer 3)
 
 ```yaml
-6. LGM API         — your Large Grammar Model, containerised
-7. The Luggage     — agent orchestration platform
-8. Block Prophet   — MCTS reasoning engine
+6. LGM API         — Large Grammar Model, containerised (cloud inference)
+7. The Luggage     — agent orchestration platform (MCP-native)
+8. Block Prophet   — MCTS inference-time reasoning engine
 ```
+
+**MKAngel/GLM runs ON-DEVICE (Android), not on the cluster.** This is your local-first AI:
+- ~370K parameter Grammar Language Model, pure Python (no numpy, no torch)
+- 7 domain grammars: linguistics, maths, biology, chemistry, physics, computation, etymology
+- Proto-Indo-European root tracing across 151+ seed words with dynamic learning
+- Custom attention: FugueAttention, StrangeLoopAttention, TemporalAttention
+- Kivy Android UI, SQLite persistence, Buildozer APK (arm64-v8a)
+- Commands: `/fugue`, `/predict`, `/forecast`, `/reconstruct`, `/translate`, `/introspect`
+
+**The two-brain architecture:** MKAngel is the private, on-device brain (zero cloud). LGM is the cloud brain on TARDIS. The Luggage orchestrates between them.
 
 ### Revenue Apps (Layer 4 — deploy as each is ready)
 
