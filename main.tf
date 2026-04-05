@@ -3,10 +3,15 @@ provider "civo" {
   region = var.region
 }
 
+# Look up the default network for this region
+data "civo_network" "default" {
+  label = "default"
+}
+
 # Firewall for the Kubernetes cluster
 resource "civo_firewall" "tardis_firewall" {
   name                 = "${var.cluster_name}-firewall"
-  network_id           = "default"
+  network_id           = data.civo_network.default.id
   create_default_rules = true
 }
 
