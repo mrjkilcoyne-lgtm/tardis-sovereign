@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#0a0a0a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Psychic Paper</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0a;--surface:#141414;--glass:rgba(255,255,255,0.06);
+  --glass-border:rgba(255,255,255,0.1);--text:#e8e8e8;--text-dim:#888;
+  --accent:#3b82f6;--radius:16px;
+}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);overflow:hidden;-webkit-tap-highlight-color:transparent}
+body{display:flex;flex-direction:column;align-items:center;justify-content:center}
+
+/* Glass morphism */
+.glass{background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--glass-border);border-radius:var(--radius)}
+
+/* Setup screen */
+#setup{position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);transition:opacity .4s,transform .4s}
+#setup.hidden{opacity:0;transform:scale(1.05);pointer-events:none}
+#setup h1{font-size:1.8rem;margin-bottom:.3rem;font-weight:700;letter-spacing:-.02em}
+#setup p{color:var(--text-dim);margin-bottom:2rem;font-size:.9rem}
+#setup .logo{width:80px;height:80px;margin-bottom:1.5rem}
+.setup-form{display:flex;flex-direction:column;gap:12px;width:min(320px,85vw)}
+.setup-form input{background:var(--surface);border:1px solid var(--glass-border);border-radius:12px;padding:14px 16px;color:var(--text);font-size:1rem;outline:none;transition:border-color .2s}
+.setup-form input:focus{border-color:var(--accent)}
+.setup-form input::placeholder{color:#555}
+.btn-primary{background:var(--accent);color:#fff;border:none;border-radius:12px;padding:14px;font-size:1rem;font-weight:600;cursor:pointer;margin-top:8px;transition:transform .15s,opacity .15s}
+.btn-primary:active{transform:scale(.97);opacity:.9}
+
+/* Main app */
+#app{display:none;flex-direction:column;align-items:center;width:100%;height:100%;padding:16px 16px env(safe-area-inset-bottom,16px)}
+#app.active{display:flex}
+
+/* Top bar */
+.top-bar{display:flex;align-items:center;justify-content:space-between;width:100%;max-width:420px;margin-bottom:12px;padding:0 4px}
+.top-bar .identity{font-size:.75rem;color:var(--text-dim);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.top-bar .reset-btn{background:none;border:none;color:var(--text-dim);font-size:.7rem;cursor:pointer;padding:6px 10px;border-radius:8px;transition:background .2s}
+.top-bar .reset-btn:hover{background:var(--glass)}
+
+/* Situation input */
+.situation-wrap{width:100%;max-width:420px;margin-bottom:16px}
+.situation-wrap input{width:100%;background:var(--surface);border:1px solid var(--glass-border);border-radius:14px;padding:14px 18px;color:var(--text);font-size:1rem;outline:none;transition:border-color .2s}
+.situation-wrap input:focus{border-color:var(--accent)}
+.situation-wrap input::placeholder{color:#555}
+
+/* Document viewport */
+.doc-viewport{flex:1;display:flex;align-items:center;justify-content:center;width:100%;max-width:420px;perspective:1200px;min-height:0}
+
+/* Document card wrapper */
+.doc-card{position:relative;width:100%;transition:transform .3s ease,opacity .3s ease;transform-style:preserve-3d}
+.doc-card.morph-out{transform:scale(.92) rotateY(90deg);opacity:0}
+.doc-card.morph-in{transform:scale(.92) rotateY(-90deg);opacity:0}
+
+/* Document types base */
+.document{border-radius:16px;overflow:hidden;position:relative;box-shadow:0 8px 32px rgba(0,0,0,.5)}
+
+/* Card layout (credit card ratio ~1.586) */
+.layout-card{aspect-ratio:1.586/1;padding:24px;display:flex;flex-direction:column;justify-content:space-between}
+
+/* Ticket layout */
+.layout-ticket{aspect-ratio:2.5/1;display:flex;position:relative}
+.layout-ticket .ticket-main{flex:1;padding:20px 24px;display:flex;flex-direction:column;justify-content:space-between}
+.layout-ticket .ticket-stub{width:72px;border-left:2px dashed rgba(255,255,255,.15);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px;position:relative}
+.layout-ticket .ticket-stub::before{content:'';position:absolute;left:-9px;top:-8px;width:16px;height:16px;border-radius:50%;background:var(--bg)}
+.layout-ticket .ticket-stub::after{content:'';position:absolute;left:-9px;bottom:-8px;width:16px;height:16px;border-radius:50%;background:var(--bg)}
+
+/* Badge layout */
+.layout-badge{display:flex;flex-direction:column;min-height:280px}
+.layout-badge .badge-header{padding:16px 24px;text-align:center;font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:.75rem}
+.layout-badge .badge-body{flex:1;padding:20px 24px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.layout-badge .badge-lanyard{width:40px;height:20px;margin:0 auto -1px;border-radius:0 0 8px 8px;position:relative}
+.layout-badge .badge-lanyard::before{content:'';position:absolute;left:50%;top:-40px;transform:translateX(-50%);width:2px;height:40px;background:rgba(255,255,255,.2)}
+.layout-badge .badge-lanyard::after{content:'';position:absolute;left:50%;top:-40px;transform:translateX(-50%);width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.3)}
+
+/* Full document layout */
+.layout-full{min-height:360px;padding:32px 28px;display:flex;flex-direction:column;border:3px double rgba(255,255,255,.15)}
+
+/* Shimmer/hologram effect */
+.shimmer{position:absolute;width:60px;height:60px;border-radius:50%;background:conic-gradient(from 0deg,#e74c3c,#e67e22,#f1c40f,#2ecc71,#3498db,#9b59b6,#e74c3c);opacity:.18;animation:shimmerSpin 3s linear infinite;filter:blur(1px)}
+@keyframes shimmerSpin{to{transform:rotate(360deg)}}
+
+/* Rainbow edge shimmer for certain cards */
+.rainbow-edge::before{content:'';position:absolute;inset:-1px;border-radius:17px;background:conic-gradient(from var(--angle,0deg),#e74c3c,#e67e22,#f1c40f,#2ecc71,#3498db,#9b59b6,#e74c3c);z-index:-1;opacity:.3;animation:rainbowRotate 4s linear infinite}
+@keyframes rainbowRotate{to{--angle:360deg}}
+@property --angle{syntax:'<angle>';initial-value:0deg;inherits:false}
+
+/* QR code */
+.qr-box{width:48px;height:48px;display:grid;grid-template-columns:repeat(7,1fr);grid-template-rows:repeat(7,1fr);gap:1px;background:rgba(255,255,255,.9);padding:3px;border-radius:4px}
+.qr-box .qr-cell{border-radius:1px}
+.qr-box .qr-cell.on{background:#111}
+.qr-box .qr-cell.off{background:rgba(255,255,255,.9)}
+
+/* Document text styles */
+.doc-label{font-size:.6rem;text-transform:uppercase;letter-spacing:.1em;opacity:.6;margin-bottom:2px}
+.doc-value{font-size:.95rem;font-weight:600;letter-spacing:.01em}
+.doc-title{font-size:1.4rem;font-weight:800;letter-spacing:-.01em}
+.doc-subtitle{font-size:.8rem;opacity:.7}
+.doc-id{font-family:'Courier New',monospace;font-size:.7rem;opacity:.5;letter-spacing:.05em}
+
+/* Quick select pills */
+.quick-select{display:flex;gap:8px;overflow-x:auto;width:100%;max-width:420px;padding:8px 4px 16px;-ms-overflow-style:none;scrollbar-width:none}
+.quick-select::-webkit-scrollbar{display:none}
+.pill{white-space:nowrap;padding:8px 16px;border-radius:20px;background:var(--surface);border:1px solid var(--glass-border);color:var(--text-dim);font-size:.8rem;cursor:pointer;transition:all .2s;flex-shrink:0}
+.pill:active,.pill.active{background:var(--accent);color:#fff;border-color:var(--accent);transform:scale(.95)}
+</style>
+</head>
+<body>
+
+<!-- SETUP SCREEN -->
+<div id="setup">
+  <img src="icon.svg" class="logo" alt="Psychic Paper">
+  <h1>Psychic Paper</h1>
+  <p>It shows them whatever I want them to see.</p>
+  <div class="setup-form">
+    <input type="text" id="inp-name" placeholder="Your name" autocomplete="name">
+    <input type="text" id="inp-org" placeholder="Organisation">
+    <input type="text" id="inp-title" placeholder="Title / Role">
+    <button class="btn-primary" id="btn-save">Activate</button>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <div class="top-bar">
+    <span class="identity" id="identity-label"></span>
+    <button class="reset-btn" id="btn-reset">Edit Identity</button>
+  </div>
+  <div class="situation-wrap">
+    <input type="text" id="inp-situation" placeholder="Enter situation... (e.g. press conference)">
+  </div>
+  <div class="doc-viewport">
+    <div class="doc-card" id="doc-card"></div>
+  </div>
+  <div class="quick-select" id="quick-select">
+    <button class="pill" data-kw="press conference">Press</button>
+    <button class="pill" data-kw="concert">Concert</button>
+    <button class="pill" data-kw="flight boarding">Flight</button>
+    <button class="pill" data-kw="security clearance">Security</button>
+    <button class="pill" data-kw="conference delegate">Conference</button>
+    <button class="pill" data-kw="train metro">Travel</button>
+  </div>
+</div>
+
+<script>
+/* ========== DOCUMENT TYPE DEFINITIONS ========== */
+const DOC_TYPES = {
+  press_pass: {
+    keywords: ['press','media','journalist','reporter','news'],
+    label: 'PRESS',
+    layout: 'badge',
+    colors: { primary:'#1a3a5c', accent:'#4da6ff', bg:'#0d2137', text:'#e8f0ff', headerBg:'#4da6ff', headerText:'#0d2137' },
+    shimmer: false,
+    fields: (id) => ({
+      header: 'PRESS',
+      title: id.name,
+      subtitle: id.org || 'Freelance',
+      extra: id.title || 'Correspondent',
+      badge: 'MEDIA ACCESS ALL AREAS'
+    })
+  },
+  event_ticket: {
+    keywords: ['concert','show','gig','festival','event','performance','theatre','theater'],
+    label: 'EVENT TICKET',
+    layout: 'ticket',
+    colors: { primary:'#2d1b4e', accent:'#c084fc', bg:'#1a0f2e', text:'#f0e6ff' },
+    shimmer: false,
+    fields: (id) => ({
+      event: 'LIVE EVENT',
+      venue: 'Main Stage',
+      holder: id.name,
+      section: 'GA',
+      row: String.fromCharCode(65 + Math.floor(Math.random()*8)),
+      seat: String(Math.floor(Math.random()*40)+1)
+    })
+  },
+  boarding_pass: {
+    keywords: ['flight','airport','boarding','airline','plane','travel abroad'],
+    label: 'BOARDING PASS',
+    layout: 'ticket',
+    colors: { primary:'#1a2744', accent:'#60a5fa', bg:'#0f1a2e', text:'#dbeafe' },
+    shimmer: false,
+    fields: (id) => {
+      const codes = ['LHR','JFK','CDG','NRT','LAX','SFO','SIN','DXB'];
+      const from = codes[Math.floor(Math.random()*codes.length)];
+      let to = codes[Math.floor(Math.random()*codes.length)];
+      while(to===from) to = codes[Math.floor(Math.random()*codes.length)];
+      return { passenger:id.name, from, to, gate:'B'+Math.floor(Math.random()*40+1), seat:String.fromCharCode(65+Math.floor(Math.random()*6))+Math.floor(Math.random()*30+1), cls:'ECONOMY' };
+    }
+  },
+  driving_licence: {
+    keywords: ['driving','licence','license','vehicle','drive','dvla'],
+    label: 'DRIVING LICENCE',
+    layout: 'card',
+    colors: { primary:'#1e3a5f', accent:'#ec4899', bg:'#162d4a', text:'#e0e7ff' },
+    shimmer: true,
+    fields: (id) => ({
+      name: id.name,
+      dob: '15.06.1990',
+      issued: '01.03.2022',
+      expires: '15.06.2030',
+      address: 'London, United Kingdom',
+      categories: 'A B BE'
+    })
+  },
+  membership: {
+    keywords: ['member','club','gym','library','loyalty','vip'],
+    label: 'MEMBERSHIP',
+    layout: 'card',
+    colors: { primary:'#1a1a1a', accent:'#fbbf24', bg:'#111', text:'#f5f0e0' },
+    shimmer: true,
+    fields: (id) => ({
+      name: id.name,
+      tier: 'GOLD',
+      org: id.org || 'The Club',
+      since: '2021',
+      status: 'ACTIVE'
+    })
+  },
+  security_badge: {
+    keywords: ['security','clearance','restricted','classified','access','authorized'],
+    label: 'SECURITY',
+    layout: 'badge',
+    colors: { primary:'#1c1c1c', accent:'#ef4444', bg:'#111', text:'#fecaca', headerBg:'#dc2626', headerText:'#fff' },
+    shimmer: true,
+    fields: (id) => ({
+      header: 'SECURITY CLEARANCE',
+      title: id.name,
+      subtitle: id.org || 'CLASSIFIED',
+      extra: id.title || 'Level 5 Operative',
+      badge: 'RESTRICTED ACCESS'
+    })
+  },
+  transport_pass: {
+    keywords: ['tube','bus','train','metro','underground','tfl','oyster','transit','tram'],
+    label: 'TRANSPORT',
+    layout: 'card',
+    colors: { primary:'#003688', accent:'#00a4e4', bg:'#002255', text:'#e0efff' },
+    shimmer: false,
+    fields: (id) => ({
+      name: id.name,
+      type: 'ALL ZONES',
+      valid: 'Valid until 2027',
+      network: 'METROPOLITAN TRANSIT'
+    })
+  },
+  conference_badge: {
+    keywords: ['conference','delegate','summit','speaker','keynote','workshop','seminar','expo'],
+    label: 'CONFERENCE',
+    layout: 'badge',
+    colors: { primary:'#1a1a2e', accent:'#818cf8', bg:'#0f0f23', text:'#e0e0ff', headerBg:'#6366f1', headerText:'#fff' },
+    shimmer: false,
+    fields: (id) => ({
+      header: 'DELEGATE',
+      title: id.name,
+      subtitle: id.org || 'Independent',
+      extra: id.title || 'Attendee',
+      badge: 'ALL ACCESS PASS'
+    })
+  },
+  permit: {
+    keywords: ['permit','authorization','approved','licence','official','granted','warrant'],
+    label: 'OFFICIAL PERMIT',
+    layout: 'full',
+    colors: { primary:'#f5f0e8', accent:'#8b7355', bg:'#ede8df', text:'#2c2418' },
+    shimmer: false,
+    fields: (id) => ({
+      heading: 'OFFICIAL PERMIT',
+      body: `This document certifies that ${id.name}${id.org ? ' of '+id.org : ''} is hereby granted full authorization and clearance as required.`,
+      signatory: 'Director of Operations',
+      date: new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})
+    })
+  },
+  invitation: {
+    keywords: ['invite','invitation','gala','dinner','ceremony','reception','ball','banquet'],
+    label: 'INVITATION',
+    layout: 'card',
+    colors: { primary:'#1a0a1e', accent:'#d4af37', bg:'#150a18', text:'#f0e6d0' },
+    shimmer: true,
+    fields: (id) => ({
+      heading: 'You are cordially invited',
+      name: id.name,
+      event: 'The Annual Gala',
+      dress: 'Black Tie',
+      rsvp: 'Confirmed'
+    })
+  }
+};
+
+/* ========== UTILITY FUNCTIONS ========== */
+function hashStr(s){let h=0;for(let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0}return Math.abs(h)}
+
+function genRefId(seed){
+  const h=hashStr(seed+Date.now().toString(36));
+  const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let r='';for(let i=0;i<12;i++)r+=chars[(h*((i+1)*7))%chars.length];
+  return r.slice(0,4)+'-'+r.slice(4,8)+'-'+r.slice(8,12);
+}
+
+function genQRCells(seed){
+  const h=hashStr(seed);
+  const cells=[];
+  for(let i=0;i<49;i++){
+    // Corner patterns always on
+    const row=Math.floor(i/7),col=i%7;
+    const isCorner=(row<3&&col<3)||(row<3&&col>3)||(row>3&&col<3);
+    cells.push(isCorner?true:((h*(i+1)*13)%7<4));
+  }
+  return cells;
+}
+
+function renderQR(seed){
+  const cells=genQRCells(seed);
+  return '<div class="qr-box">'+cells.map(on=>`<div class="qr-cell ${on?'on':'off'}"></div>`).join('')+'</div>';
+}
+
+/* ========== DOCUMENT RENDERER ========== */
+function detectType(situation){
+  const s=situation.toLowerCase();
+  for(const[key,def]of Object.entries(DOC_TYPES)){
+    if(def.keywords.some(kw=>s.includes(kw)))return key;
+  }
+  return 'press_pass'; // fallback
+}
+
+function renderDocument(typeKey, identity){
+  const def=DOC_TYPES[typeKey];
+  const f=def.fields(identity);
+  const refId=genRefId(typeKey+identity.name);
+  const qr=renderQR(refId);
+  const c=def.colors;
+  let html='';
+
+  if(def.layout==='card'){
+    html=`<div class="document layout-card${def.shimmer?' rainbow-edge':''}" style="background:${c.bg};color:${c.text}">
+      ${def.shimmer?'<div class="shimmer" style="top:12px;right:12px"></div>':''}
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div>
+            <div class="doc-label" style="color:${c.accent}">${def.label}</div>
+            ${typeKey==='driving_licence'?`
+              <div class="doc-value" style="margin-top:6px">${f.name}</div>
+              <div style="margin-top:10px;display:flex;gap:20px">
+                <div><div class="doc-label">DOB</div><div style="font-size:.8rem">${f.dob}</div></div>
+                <div><div class="doc-label">EXPIRES</div><div style="font-size:.8rem">${f.expires}</div></div>
+              </div>
+              <div style="margin-top:6px;font-size:.7rem;opacity:.6">${f.address}</div>
+              <div style="margin-top:4px;font-size:.7rem;font-weight:700;color:${c.accent}">${f.categories}</div>
+            `:typeKey==='membership'?`
+              <div style="margin-top:4px;font-size:.7rem;font-weight:700;color:${c.accent};letter-spacing:.1em">${f.tier} MEMBER</div>
+              <div class="doc-title" style="margin-top:10px;color:${c.accent}">${f.org}</div>
+              <div class="doc-value" style="margin-top:8px">${f.name}</div>
+              <div style="font-size:.75rem;opacity:.5;margin-top:4px">Member since ${f.since} &middot; ${f.status}</div>
+            `:typeKey==='transport_pass'?`
+              <div class="doc-title" style="margin-top:8px;font-size:1.1rem;color:${c.accent}">${f.network}</div>
+              <div class="doc-value" style="margin-top:10px">${f.name}</div>
+              <div style="font-size:.8rem;margin-top:6px;font-weight:600">${f.type}</div>
+              <div style="font-size:.7rem;opacity:.6;margin-top:4px">${f.valid}</div>
+            `:typeKey==='invitation'?`
+              <div style="font-style:italic;font-size:.85rem;margin-top:8px;opacity:.8">${f.heading}</div>
+              <div class="doc-title" style="margin-top:8px;color:${c.accent}">${f.name}</div>
+              <div style="margin-top:6px;font-size:.85rem">${f.event}</div>
+              <div style="margin-top:8px;display:flex;gap:20px">
+                <div><div class="doc-label">DRESS CODE</div><div style="font-size:.8rem">${f.dress}</div></div>
+                <div><div class="doc-label">RSVP</div><div style="font-size:.8rem;color:${c.accent}">${f.rsvp}</div></div>
+              </div>
+            `:''}
+          </div>
+          <div style="flex-shrink:0;margin-left:12px">${qr}</div>
+        </div>
+      </div>
+      <div class="doc-id">${refId}</div>
+    </div>`;
+  }
+  else if(def.layout==='ticket'){
+    html=`<div class="document layout-ticket" style="background:${c.bg};color:${c.text}">
+      <div class="ticket-main">
+        <div>
+          <div class="doc-label" style="color:${c.accent}">${def.label}</div>
+          ${typeKey==='event_ticket'?`
+            <div class="doc-title" style="margin-top:4px">${f.event}</div>
+            <div style="font-size:.8rem;opacity:.7;margin-top:2px">${f.venue}</div>
+            <div style="margin-top:10px">
+              <div class="doc-label">ADMIT</div>
+              <div class="doc-value">${f.holder}</div>
+            </div>
+            <div style="display:flex;gap:16px;margin-top:8px">
+              <div><div class="doc-label">SEC</div><div style="font-weight:700">${f.section}</div></div>
+              <div><div class="doc-label">ROW</div><div style="font-weight:700">${f.row}</div></div>
+              <div><div class="doc-label">SEAT</div><div style="font-weight:700">${f.seat}</div></div>
+            </div>
+          `:`
+            <div style="display:flex;align-items:baseline;gap:12px;margin-top:8px">
+              <div style="font-size:2rem;font-weight:800;color:${c.accent}">${f.from}</div>
+              <div style="font-size:1.2rem;opacity:.4">&rarr;</div>
+              <div style="font-size:2rem;font-weight:800;color:${c.accent}">${f.to}</div>
+            </div>
+            <div style="margin-top:8px">
+              <div class="doc-label">PASSENGER</div>
+              <div class="doc-value">${f.passenger}</div>
+            </div>
+            <div style="display:flex;gap:16px;margin-top:8px">
+              <div><div class="doc-label">GATE</div><div style="font-weight:700">${f.gate}</div></div>
+              <div><div class="doc-label">SEAT</div><div style="font-weight:700">${f.seat}</div></div>
+              <div><div class="doc-label">CLASS</div><div style="font-weight:700;font-size:.75rem">${f.cls}</div></div>
+            </div>
+          `}
+        </div>
+        <div class="doc-id">${refId}</div>
+      </div>
+      <div class="ticket-stub">
+        <div style="writing-mode:vertical-rl;text-orientation:mixed;font-size:.65rem;font-weight:700;letter-spacing:.1em;opacity:.5;transform:rotate(180deg)">${def.label}</div>
+        <div style="margin-top:8px">${qr}</div>
+      </div>
+    </div>`;
+  }
+  else if(def.layout==='badge'){
+    html=`<div class="document layout-badge${def.shimmer?' rainbow-edge':''}" style="background:${c.bg};color:${c.text}">
+      ${def.shimmer?'<div class="shimmer" style="top:60px;right:20px"></div>':''}
+      <div class="badge-lanyard" style="background:${c.headerBg||c.accent}"></div>
+      <div class="badge-header" style="background:${c.headerBg||c.accent};color:${c.headerText||'#fff'}">${f.header}</div>
+      <div class="badge-body">
+        <div class="doc-title" style="text-align:center;margin-bottom:4px">${f.title}</div>
+        <div class="doc-subtitle" style="text-align:center;margin-bottom:2px">${f.subtitle}</div>
+        <div style="font-size:.75rem;color:${c.accent};font-weight:600;margin-bottom:16px;text-align:center">${f.extra}</div>
+        ${qr}
+        <div class="doc-id" style="margin-top:10px">${refId}</div>
+        <div style="font-size:.6rem;text-transform:uppercase;letter-spacing:.15em;opacity:.4;margin-top:6px">${f.badge}</div>
+      </div>
+    </div>`;
+  }
+  else if(def.layout==='full'){
+    html=`<div class="document layout-full" style="background:${c.bg};color:${c.text}">
+      <div style="text-align:center;margin-bottom:20px">
+        <div style="font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;opacity:.5;margin-bottom:8px">Official Document</div>
+        <div style="font-size:1.3rem;font-weight:800;letter-spacing:.02em;color:${c.accent}">${f.heading}</div>
+        <div style="width:60px;height:2px;background:${c.accent};margin:10px auto;opacity:.4"></div>
+      </div>
+      <div style="flex:1">
+        <p style="font-size:.85rem;line-height:1.6;margin-bottom:16px">${f.body}</p>
+        <div style="display:flex;gap:16px;margin-top:12px">
+          <div><div class="doc-label">DATE</div><div style="font-size:.8rem">${f.date}</div></div>
+          <div><div class="doc-label">REF</div><div style="font-size:.8rem;font-family:monospace">${refId}</div></div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:16px">
+        <div>
+          <div style="width:100px;border-top:1px solid ${c.accent};padding-top:4px;font-size:.65rem;opacity:.6">${f.signatory}</div>
+        </div>
+        ${qr}
+      </div>
+    </div>`;
+  }
+  return html;
+}
+
+/* ========== APP STATE ========== */
+let currentType=null;
+let identity={name:'',org:'',title:''};
+
+function loadIdentity(){
+  try{
+    const d=JSON.parse(localStorage.getItem('psychic_identity'));
+    if(d&&d.name)return d;
+  }catch(e){}
+  return null;
+}
+
+function saveIdentity(id){
+  localStorage.setItem('psychic_identity',JSON.stringify(id));
+}
+
+function showSetup(){
+  const s=document.getElementById('setup');
+  s.classList.remove('hidden');
+  document.getElementById('app').classList.remove('active');
+  const saved=loadIdentity();
+  if(saved){
+    document.getElementById('inp-name').value=saved.name||'';
+    document.getElementById('inp-org').value=saved.org||'';
+    document.getElementById('inp-title').value=saved.title||'';
+  }
+}
+
+function showApp(){
+  document.getElementById('setup').classList.add('hidden');
+  document.getElementById('app').classList.add('active');
+  document.getElementById('identity-label').textContent=identity.name+(identity.org?' \u00b7 '+identity.org:'');
+  morphTo('press_pass');
+}
+
+function morphTo(typeKey){
+  if(typeKey===currentType)return;
+  const card=document.getElementById('doc-card');
+
+  if(currentType){
+    card.classList.add('morph-out');
+    setTimeout(()=>{
+      card.innerHTML=renderDocument(typeKey,identity);
+      card.classList.remove('morph-out');
+      card.classList.add('morph-in');
+      requestAnimationFrame(()=>{
+        requestAnimationFrame(()=>{
+          card.classList.remove('morph-in');
+        });
+      });
+      currentType=typeKey;
+    },300);
+  }else{
+    card.innerHTML=renderDocument(typeKey,identity);
+    currentType=typeKey;
+  }
+
+  // Update active pill
+  document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));
+}
+
+/* ========== EVENT HANDLERS ========== */
+document.getElementById('btn-save').addEventListener('click',()=>{
+  const name=document.getElementById('inp-name').value.trim();
+  if(!name)return document.getElementById('inp-name').focus();
+  identity={name,org:document.getElementById('inp-org').value.trim(),title:document.getElementById('inp-title').value.trim()};
+  saveIdentity(identity);
+  showApp();
+});
+
+document.getElementById('btn-reset').addEventListener('click',showSetup);
+
+let debounceTimer;
+document.getElementById('inp-situation').addEventListener('input',function(){
+  clearTimeout(debounceTimer);
+  debounceTimer=setTimeout(()=>{
+    if(this.value.trim()){
+      const t=detectType(this.value);
+      morphTo(t);
+    }
+  },300);
+});
+
+document.getElementById('quick-select').addEventListener('click',function(e){
+  const pill=e.target.closest('.pill');
+  if(!pill)return;
+  const kw=pill.dataset.kw;
+  document.getElementById('inp-situation').value=kw;
+  document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));
+  pill.classList.add('active');
+  const t=detectType(kw);
+  morphTo(t);
+});
+
+// Allow Enter on setup inputs
+document.querySelectorAll('.setup-form input').forEach(inp=>{
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('btn-save').click()});
+});
+
+/* ========== INIT ========== */
+const saved=loadIdentity();
+if(saved&&saved.name){
+  identity=saved;
+  showApp();
+}else{
+  showSetup();
+}
+
+/* ========== SERVICE WORKER ========== */
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+</script>
+</body>
+</html>
