@@ -110,6 +110,27 @@ body{display:flex;flex-direction:column;align-items:center;justify-content:cente
 .quick-select::-webkit-scrollbar{display:none}
 .pill{white-space:nowrap;padding:8px 16px;border-radius:20px;background:var(--surface);border:1px solid var(--glass-border);color:var(--text-dim);font-size:.8rem;cursor:pointer;transition:all .2s;flex-shrink:0}
 .pill:active,.pill.active{background:var(--accent);color:#fff;border-color:var(--accent);transform:scale(.95)}
+.bottom-nav{display:flex;width:100%;max-width:420px;border-top:1px solid var(--glass-border);background:var(--surface)}
+.nav-tab{flex:1;padding:12px 0 max(12px,env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:none;color:var(--text-dim);font-size:.65rem;cursor:pointer;transition:color .2s}
+.nav-tab.active{color:var(--accent)}
+.nav-tab svg{width:20px;height:20px}
+#tardis-chat{display:none;flex-direction:column;width:100%;max-width:420px;flex:1;min-height:0}
+#tardis-chat.active{display:flex}
+.chat-messages{flex:1;overflow-y:auto;padding:12px 4px;display:flex;flex-direction:column;gap:8px;min-height:0}
+.msg{max-width:85%;padding:10px 14px;border-radius:14px;font-size:.9rem;line-height:1.45;animation:msgIn .3s ease}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.msg.tardis{align-self:flex-start;background:var(--surface);border:1px solid var(--glass-border);color:var(--text);border-bottom-left-radius:4px}
+.msg.user{align-self:flex-end;background:var(--accent);color:#fff;border-bottom-right-radius:4px}
+.chat-input-wrap{display:flex;gap:8px;padding:8px 0}
+.chat-input-wrap input{flex:1;background:var(--surface);border:1px solid var(--glass-border);border-radius:14px;padding:12px 16px;color:var(--text);font-size:.95rem;outline:none}
+.chat-input-wrap input:focus{border-color:var(--accent)}
+.chat-input-wrap button{background:var(--accent);border:none;color:#fff;width:44px;height:44px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.typing{align-self:flex-start;padding:10px 14px;background:var(--surface);border:1px solid var(--glass-border);border-radius:14px;border-bottom-left-radius:4px;display:flex;gap:4px}
+.typing span{width:6px;height:6px;background:var(--text-dim);border-radius:50%;animation:typeDot 1.4s infinite}
+.typing span:nth-child(2){animation-delay:.2s}
+.typing span:nth-child(3){animation-delay:.4s}
+@keyframes typeDot{0%,60%,100%{opacity:.3;transform:translateY(0)}30%{opacity:1;transform:translateY(-4px)}}
+.stealth-indicator{position:fixed;top:8px;left:50%;transform:translateX(-50%);font-size:.6rem;color:var(--text-dim);opacity:.3;letter-spacing:.1em;z-index:50}
 </style>
 </head>
 <body>
@@ -129,23 +150,46 @@ body{display:flex;flex-direction:column;align-items:center;justify-content:cente
 
 <!-- MAIN APP -->
 <div id="app">
+  <div class="stealth-indicator" id="stealth-ind"></div>
   <div class="top-bar">
     <span class="identity" id="identity-label"></span>
     <button class="reset-btn" id="btn-reset">Edit Identity</button>
   </div>
-  <div class="situation-wrap">
-    <input type="text" id="inp-situation" placeholder="Enter situation... (e.g. press conference)">
+
+  <div id="paper-view" style="display:flex;flex-direction:column;align-items:center;width:100%;max-width:420px;flex:1;min-height:0">
+    <div class="situation-wrap">
+      <input type="text" id="inp-situation" placeholder="Enter situation... (e.g. press conference)">
+    </div>
+    <div class="doc-viewport">
+      <div class="doc-card" id="doc-card"></div>
+    </div>
+    <div class="quick-select" id="quick-select">
+      <button class="pill" data-kw="press conference">Press</button>
+      <button class="pill" data-kw="concert">Concert</button>
+      <button class="pill" data-kw="flight boarding">Flight</button>
+      <button class="pill" data-kw="security clearance">Security</button>
+      <button class="pill" data-kw="conference delegate">Conference</button>
+      <button class="pill" data-kw="train metro">Travel</button>
+    </div>
   </div>
-  <div class="doc-viewport">
-    <div class="doc-card" id="doc-card"></div>
+
+  <div id="tardis-chat">
+    <div class="chat-messages" id="chat-messages"></div>
+    <div class="chat-input-wrap">
+      <input type="text" id="chat-input" placeholder="Talk to TARDIS..." autocomplete="off">
+      <button id="chat-send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg></button>
+    </div>
   </div>
-  <div class="quick-select" id="quick-select">
-    <button class="pill" data-kw="press conference">Press</button>
-    <button class="pill" data-kw="concert">Concert</button>
-    <button class="pill" data-kw="flight boarding">Flight</button>
-    <button class="pill" data-kw="security clearance">Security</button>
-    <button class="pill" data-kw="conference delegate">Conference</button>
-    <button class="pill" data-kw="train metro">Travel</button>
+
+  <div class="bottom-nav">
+    <button class="nav-tab active" data-tab="paper">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 7h10M7 12h6M7 17h8"/></svg>
+      Paper
+    </button>
+    <button class="nav-tab" data-tab="tardis">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      TARDIS
+    </button>
   </div>
 </div>
 
@@ -568,6 +612,141 @@ if(saved&&saved.name){
 }else{
   showSetup();
 }
+
+/* ========== TARDIS CONVERSATION ENGINE ========== */
+const TARDIS={
+  state:'greeting',exchanges:0,userText:[],_usedProbes:[],
+  voice:{
+    greetings:["Right then. What's the trouble?","Hello. What's on your mind?","Right. Tell me what's going on."],
+    acks:["I hear you.","Right, I see.","Got it.","OK, that's useful.","Understood."],
+    probes:["And what's the actual impact of that? On you, day to day?","What have you already tried?","When you say it's not working — what specifically happens?","What would solved actually look like?","What's the thing you can't change about this?","How long has this been going on?"],
+    reframes:["So really this is about {d}, not what it looks like on the surface.","Right. The real issue here is {d}. Everything else is symptoms.","OK, I think I see the shape of this. It's a {d} problem at heart."],
+    recs:["Here's what I'd suggest.","Right, here's my thinking.","OK. Three paths forward."],
+    closings:["That's my read. Trust your judgement on the specifics.","Hope that's useful. Come back anytime.","Right. You've got more options than you think."]
+  },
+  domains:{technology:{kw:['code','server','app','software','bug','crash','api','website','deploy'],l:'technology'},financial:{kw:['money','debt','salary','rent','mortgage','savings','tax','afford','income','budget'],l:'financial'},career:{kw:['job','work','boss','promotion','fired','career','employer'],l:'career'},health:{kw:['health','doctor','pain','anxiety','depression','sleep','stress','tired','therapy'],l:'wellbeing'},housing:{kw:['house','flat','landlord','rent','move','lease','council','housing'],l:'housing'},legal:{kw:['legal','solicitor','law','contract','rights','court','claim'],l:'legal'},creative:{kw:['write','design','music','art','create','build','project','idea','launch'],l:'creative'},relationships:{kw:['relationship','partner','family','friend','trust','breakup'],l:'relationships'},security:{kw:['hack','breach','password','scam','phishing','identity','stolen','suspicious','access'],l:'security'}},
+  detect(text){let t=text.toLowerCase(),best=null,bs=0;for(const[k,d]of Object.entries(this.domains)){let s=0;for(const w of d.kw)if(t.includes(w))s++;if(s>bs){bs=s;best=d.l}}return best},
+  pick(a){return a[Math.random()*a.length|0]},
+  respond(input){
+    this.userText.push(input);this.exchanges++;
+    const d=this.detect(this.userText.join(' '));
+    if(this.state==='greeting'){this.state='listening';return this.pick(this.voice.acks)+' '+this.pick(this.voice.probes)}
+    if(this.state==='listening'||this.state==='clarifying'){
+      if(this.exchanges>=4||(d&&this.exchanges>=2)){
+        this.state='diagnosing';
+        return this.pick(this.voice.reframes).replace('{d}',d||"what you're dealing with")+'\n\n'+this.pick(this.voice.recs)+'\n\n'+this.advice(d);
+      }
+      this.state='clarifying';
+      const unused=this.voice.probes.filter(p=>!this._usedProbes.includes(p));
+      const probe=unused.length?this.pick(unused):this.pick(this.voice.probes);
+      this._usedProbes.push(probe);
+      return this.pick(this.voice.acks)+' '+probe;
+    }
+    if(this.state==='diagnosing'){this.state='closing';return this.pick(this.voice.closings)}
+    this.state='greeting';this.exchanges=0;this.userText=[];this._usedProbes=[];
+    return this.pick(this.voice.greetings);
+  },
+  advice(d){
+    const a={
+      technology:'**Quick win:** Isolate the exact failure. Check logs first, assumptions second.\n\n**Structural:** If it keeps breaking, the architecture needs rethinking.\n\n**Stuck?** Explain the problem out loud. The answer usually surfaces.',
+      financial:'**Quick win:** Track every penny for one week. Just awareness changes behaviour.\n\n**Structural:** Automate savings on payday. Even £10.\n\n**Help:** StepChange (free), MoneySavingExpert, Citizens Advice.',
+      career:'**Quick win:** Update CV and LinkedIn this week.\n\n**Structural:** Identify the one skill that would change your position most. 30 min/day.\n\n**Bad boss?** Document everything. Keep copies off company systems.',
+      wellbeing:'**Quick win:** One small thing tomorrow just for you. Tiny acts of self-respect compound.\n\n**Structural:** Talk to your GP. Self-refer to IAPT if they\'re slow.\n\n**Right now:** You\'re already doing something by talking about it.',
+      housing:'**Quick win:** Know your rights. Shelter has a free advice line.\n\n**Structural:** Put complaints in writing. Paper trail wins.\n\n**Moving?** SpareRoom, OpenRent. Council register if eligible.',
+      legal:'**Quick win:** Write everything down while it\'s fresh. Dates, names, what was said.\n\n**Structural:** Citizens Advice first (free), then solicitor.\n\n**Never** sign anything you don\'t understand.',
+      creative:'**Quick win:** Ship something small this week. Done beats planned.\n\n**Structural:** Set a schedule. Creativity needs routine more than inspiration.\n\n**The secret:** Most people never start. You already have.',
+      relationships:'**Quick win:** One honest conversation. Not about blame, about what you each need.\n\n**Structural:** If the pattern keeps repeating, the pattern is the problem.\n\n**Help:** Relate offers affordable counselling.',
+      security:'**Quick win:** Change passwords NOW on anything financial. Use unique passwords.\n\n**Structural:** Enable 2FA everywhere. Use Bitwarden for password management.\n\n**If compromised:** Contact your bank immediately. Report to Action Fraud (0300 123 2040).\n\n**IMSI catchers:** Android alerts about "Device ID accessed" are common near police/gov buildings. Toggle airplane mode to reset your connection.'
+    };
+    return a[d]||'**Quick win:** Identify the single biggest blocker. Address just that this week.\n\n**Structural:** Map all constraints. The real problem is often two steps behind the obvious one.\n\n**Remember:** You\'re thinking clearly enough to describe it. That\'s further than most get.';
+  },
+  greeting(){return this.pick(this.voice.greetings)}
+};
+
+/* ========== STEALTH & AWARENESS ========== */
+const Stealth={
+  watchers:0,
+  init(){
+    // Detect if page is being observed (dev tools, screen capture, etc.)
+    const t=this;
+
+    // Visibility change (someone switching to/from app)
+    document.addEventListener('visibilitychange',()=>{
+      if(document.hidden){t.log('App backgrounded')}
+      else{t.log('App foregrounded')}
+    });
+
+    // Dev tools detection (resize-based heuristic)
+    const threshold=160;
+    const check=()=>{
+      const w=window.outerWidth-window.innerWidth>threshold;
+      const h=window.outerHeight-window.innerHeight>threshold;
+      if(w||h){
+        if(!t._devToolsOpen){t._devToolsOpen=true;t.log('Dev tools detected');t.watchers++;t.updateIndicator()}
+      }else{
+        if(t._devToolsOpen){t._devToolsOpen=false;t.watchers=Math.max(0,t.watchers-1);t.updateIndicator()}
+      }
+    };
+    setInterval(check,1000);
+
+    // Screen capture / screenshot detection (limited on Android but try)
+    if(navigator.mediaDevices){
+      navigator.mediaDevices.addEventListener('devicechange',()=>{t.log('Media device change detected')});
+    }
+
+    this.updateIndicator();
+  },
+  log(event){
+    const logs=JSON.parse(localStorage.getItem('tardis_awareness')||'[]');
+    logs.push({time:new Date().toISOString(),event});
+    if(logs.length>100)logs.shift();
+    localStorage.setItem('tardis_awareness',JSON.stringify(logs));
+  },
+  updateIndicator(){
+    const el=document.getElementById('stealth-ind');
+    if(!el)return;
+    if(this.watchers>0){el.textContent='OBSERVED';el.style.color='#ef4444';el.style.opacity='.6'}
+    else{el.textContent='';el.style.opacity='0'}
+  },
+  getLog(){return JSON.parse(localStorage.getItem('tardis_awareness')||'[]')}
+};
+
+/* ========== CHAT DOM ========== */
+const chatMsgs=document.getElementById('chat-messages');
+const chatInp=document.getElementById('chat-input');
+let tardisInit=false;
+
+function addMsg(text,type){
+  const d=document.createElement('div');d.className='msg '+type;
+  d.innerHTML=text.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+  chatMsgs.appendChild(d);chatMsgs.scrollTop=chatMsgs.scrollHeight;
+}
+
+function sendChat(){
+  const t=chatInp.value.trim();if(!t)return;chatInp.value='';
+  addMsg(t,'user');
+  const typing=document.createElement('div');typing.className='typing';typing.innerHTML='<span></span><span></span><span></span>';
+  chatMsgs.appendChild(typing);chatMsgs.scrollTop=chatMsgs.scrollHeight;
+  setTimeout(()=>{typing.remove();addMsg(TARDIS.respond(t),'tardis')},200+Math.random()*600);
+}
+
+document.getElementById('chat-send').addEventListener('click',sendChat);
+chatInp.addEventListener('keydown',e=>{if(e.key==='Enter')sendChat()});
+
+/* ========== TAB SWITCHING ========== */
+document.querySelectorAll('.nav-tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    const target=tab.dataset.tab;
+    document.getElementById('paper-view').style.display=target==='paper'?'flex':'none';
+    document.getElementById('tardis-chat').classList.toggle('active',target==='tardis');
+    if(target==='tardis'&&!tardisInit){tardisInit=true;addMsg(TARDIS.greeting(),'tardis')}
+    if(target==='tardis')chatInp.focus();
+  });
+});
+
+Stealth.init();
 
 /* ========== SERVICE WORKER ========== */
 if('serviceWorker' in navigator){
