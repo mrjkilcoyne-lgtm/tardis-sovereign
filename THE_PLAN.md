@@ -47,9 +47,31 @@ LAYER 1: SECURITY & IDENTITY
   + Security awesome-lists (starred)
 ```
 
+### The Secret Weapon: The IGOR Protocol (Hex Inventions Agent Swarm)
+
+This isn't just a blog. It's a **7-agent AI swarm** themed on Discworld characters, running a structured reverse-engineering methodology:
+
+| Agent | Role | Discworld Reference |
+|-------|------|-------------------|
+| **Igor** | Orchestrator — picks target, routes swarm | The loyal servant |
+| **Tiffany** | Observer — "First Sight," sees what's really there | Tiffany Aching |
+| **Vimes** | Forensics — follows the money | Sam Vimes |
+| **Death** | Classifier — SEES THE TRUTH OF THINGS | Death himself |
+| **Nanny** | Cross-Reference — connects dots across domains | Nanny Ogg |
+| **Granny** | Transformer — "I can't be having with this" | Granny Weatherwax |
+| **Ridcully** | Verifier — blunt, direct, tests everything | Archchancellor Ridcully |
+
+**The IGOR Protocol (6 phases):** OBSERVE → DECOMPOSE → MAP → HYPOTHESIZE → VERIFY → TRANSCEND
+
+Each cycle produces: a full case study, reverse-engineering findings, a new invention design, AND a UK IPO patent draft. **This pipeline feeds directly into InventorForge.**
+
+First invention: **GRANNY** — an edge-AI food sovereignty system that replaces Samsung's $3,500 cloud-dependent smart fridge with on-device inference, 5 sensor modalities, zero ads, open protocol. Additional BOM cost: ~$14. Estimated food waste savings: $230-305/year per household. Payback: 17 days.
+
+*Every file ends with `X-Clacks-Overhead: GNU Terry Pratchett`*
+
 ### The Thesis
 
-Everything connects. The TARDIS (this K3s cluster) hosts the services. LGM provides the AI. The Luggage orchestrates agents. The revenue apps run on top. Security tools protect the lot. **One person, one cluster, many products.**
+Everything connects. The TARDIS (this K3s cluster) hosts the services. LGM provides the AI. The Luggage orchestrates agents. Hex Inventions runs the IGOR Protocol swarm to generate inventions. InventorForge turns those into patents. The revenue apps run on top. Security tools protect the lot. **One person, one cluster, many products.**
 
 ---
 
@@ -224,7 +246,7 @@ Ranked by **speed to first dollar** and **effort required**:
 
 2. **COMBOT + Qubic Mining** — Qubic just transitioned to Dogecoin mining (April 2026). CPU/GPU resources now go to AI training. Run COMBOT on your phone AND home server 24/7. Passive income while you sleep. The hummingbot starred repo suggests you're already thinking about automated trading.
 
-3. **ClaimourLife / Claimour** — "1300+ magic spells for reclaiming your digital life." Already built. Deploy it. Add a donation button or premium tier. UK consumer rights is an underserved niche.
+3. **ClaimourLife / Claimour** — "1300+ magic spells for reclaiming your digital life." Already built AND deployed (ClaimourLife on Eleventy/Netlify, Claimour on Astro/Vercel). Already running on free hosting. Add a donation button or premium tier. UK consumer rights is an underserved niche.
 
 ### Tier 2: Medium-term (1-3 Months)
 
@@ -236,7 +258,7 @@ Ranked by **speed to first dollar** and **effort required**:
 
 ### Tier 3: Long Game (3-6 Months)
 
-7. **BAKK Online** — CANZUK social platform. Community play. Needs critical mass.
+7. **BAKK Online** — CANZUK social platform (Next.js/Tailwind). Already has a premium tier designed at **£10/month** (verified badge, priority matching, job board, settlement guides). Community play. Needs critical mass but the revenue model is already baked in.
 
 8. **Vex-Lang** — Crypto trading DSL. Niche but high-value users.
 
