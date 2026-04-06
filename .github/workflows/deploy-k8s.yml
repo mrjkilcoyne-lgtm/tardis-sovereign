@@ -1,0 +1,58 @@
+name: 'Deploy to TARDIS K3s'
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - 'k8s/**'
+  workflow_dispatch:
+    inputs:
+      phase:
+        description: 'Deployment phase (1=core, 2=monitoring, 3=ai, 4=apps, all)'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - '1'
+          - '2'
+          - '3'
+          - '4'
+          - 'all'
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: 'Deploy K8s Manifests'
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG }}" > ~/.kube/config
+          chmod 600 ~/.kube/config
+
+      - name: Verify cluster connection
+        run: kubectl cluster-info
+
+      - name: Deploy
+        run: |
+          PHASE="${{ github.event.inputs.phase || 'all' }}"
+          chmod +x k8s/scripts/deploy.sh
+          ./k8s/scripts/deploy.sh "$PHASE"
+
+      - name: Show status
+        if: always()
+        run: ./k8s/scripts/deploy.sh status

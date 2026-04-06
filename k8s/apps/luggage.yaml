@@ -1,0 +1,62 @@
+# The Luggage — Autonomous AI agent platform
+# MCP-native, bring-your-own-model
+# Follows. Opens. Contains everything. Indestructible.
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: luggage
+  namespace: tardis-ai
+  labels:
+    app: luggage
+    part-of: tardis-sovereign
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: luggage
+  template:
+    metadata:
+      labels:
+        app: luggage
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8001"
+    spec:
+      containers:
+        - name: luggage
+          image: ghcr.io/mrjkilcoyne-lgtm/luggage:latest
+          ports:
+            - containerPort: 8001
+          env:
+            - name: LGM_API_URL
+              value: "http://lgm-api.tardis-ai:80"
+            - name: DATABASE_URL
+              value: "postgresql://tardis:$(POSTGRES_PASSWORD)@postgres.tardis-core:5432/tardis"
+            - name: REDIS_URL
+              value: "redis://redis.tardis-core:6379"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8001
+            initialDelaySeconds: 15
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: luggage
+  namespace: tardis-ai
+spec:
+  selector:
+    app: luggage
+  ports:
+    - port: 80
+      targetPort: 8001

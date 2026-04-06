@@ -1,0 +1,90 @@
+# LGM — Large Grammar Model API
+# The cloud AI brain of the TARDIS ecosystem
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lgm-api
+  namespace: tardis-ai
+  labels:
+    app: lgm-api
+    part-of: tardis-sovereign
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lgm-api
+  template:
+    metadata:
+      labels:
+        app: lgm-api
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+    spec:
+      containers:
+        - name: lgm-api
+          image: ghcr.io/mrjkilcoyne-lgtm/lgm:latest
+          ports:
+            - containerPort: 8000
+          env:
+            - name: DATABASE_URL
+              value: "postgresql://tardis:$(POSTGRES_PASSWORD)@postgres.tardis-core:5432/tardis"
+            - name: REDIS_URL
+              value: "redis://redis.tardis-core:6379"
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "200m"
+            limits:
+              memory: "1Gi"
+              cpu: "800m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lgm-api
+  namespace: tardis-ai
+spec:
+  selector:
+    app: lgm-api
+  ports:
+    - port: 80
+      targetPort: 8000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: lgm-api
+  namespace: tardis-ai
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - lgm.tardis-sovereign.com
+      secretName: lgm-api-tls
+  rules:
+    - host: lgm.tardis-sovereign.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: lgm-api
+                port:
+                  number: 80
