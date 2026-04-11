@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gitea
+  namespace: tardis
+  labels:
+    app: gitea
+    app.kubernetes.io/part-of: tardis
+spec:
+  ingressClassName: tailscale
+  rules:
+    - host: gitea
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: gitea
+                port:
+                  number: 3000
+  tls:
+    - hosts:
+        - gitea

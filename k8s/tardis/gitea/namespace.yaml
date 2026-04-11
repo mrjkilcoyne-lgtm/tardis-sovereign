@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: tardis
+  labels:
+    app.kubernetes.io/part-of: tardis
+    purpose: vessel-console

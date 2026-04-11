@@ -1,0 +1,8 @@
+# PLACEHOLDER Age recipient.
+# Replace age1PLACEHOLDER... with Matt's real Age public key
+# (generated via `age-keygen -o ~/.config/sops/age/keys.txt`) before
+# encrypting any real secrets. The private key is mirrored to GitHub
+# Actions secret SOPS_AGE_KEY for plan-time decryption in CI (Phase 4).
+creation_rules:
+  - path_regex: workloads/secrets/.*\.enc\.yaml$
+    age: age1PLACEHOLDERmattagepublickeyreplaceme0000000000000000000000000000

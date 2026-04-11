@@ -1,0 +1,50 @@
+name: Workloads Plan
+
+# PR-only plan for the workloads/ Terraform root.
+# This workflow NEVER applies. Apply is manual per workloads/README.md.
+
+on:
+  pull_request:
+    paths:
+      - 'workloads/**'
+      - '.github/workflows/workloads-plan.yml'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  workloads-plan:
+    name: Terraform plan (workloads)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: workloads
+
+    env:
+      TF_IN_AUTOMATION: "1"
+      TF_INPUT: "0"
+      TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.7.0
+
+      - name: Terraform fmt
+        run: terraform fmt -check -recursive
+
+      - name: Terraform init
+        run: terraform init -backend=false
+
+      - name: Terraform validate
+        run: terraform validate
+
+      - name: Terraform plan
+        run: terraform plan -input=false -no-color
+        continue-on-error: true

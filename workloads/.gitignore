@@ -1,0 +1,12 @@
+# Terraform
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.tfvars
+!*.tfvars.example
+
+# Decrypted SOPS files (should never be committed)
+secrets/*.yaml
+!secrets/*.enc.yaml
