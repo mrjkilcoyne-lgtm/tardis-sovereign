@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: tardis-sovereign
+  labels:
+    app.kubernetes.io/name: tardis-sovereign
+    app.kubernetes.io/part-of: tardis-sovereign

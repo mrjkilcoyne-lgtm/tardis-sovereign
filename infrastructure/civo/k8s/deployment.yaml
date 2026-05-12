@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sovereign-dispatch
+  namespace: tardis-sovereign
+  labels:
+    app.kubernetes.io/name: sovereign-dispatch
+    app.kubernetes.io/part-of: tardis-sovereign
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: sovereign-dispatch
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: sovereign-dispatch
+        app.kubernetes.io/part-of: tardis-sovereign
+    spec:
+      containers:
+        - name: sovereign-dispatch
+          image: sovereign-dispatch:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: SOVEREIGN_CONFIG
+              value: /config/default.yaml
+            - name: CIVO_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sovereign-dispatch-secrets
+                  key: civo-api-key
+            - name: API_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sovereign-dispatch-secrets
+                  key: api-secret-key
+          volumeMounts:
+            - name: config
+              mountPath: /config
+              readOnly: true
+            - name: data
+              mountPath: /data
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 30
+            timeoutSeconds: 3
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 10
+            timeoutSeconds: 3
+      volumes:
+        - name: config
+          configMap:
+            name: sovereign-dispatch-config
+        - name: data
+          emptyDir:
+            sizeLimit: 256Mi
+      terminationGracePeriodSeconds: 15

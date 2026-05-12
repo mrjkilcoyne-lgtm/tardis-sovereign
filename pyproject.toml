@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sovereign-dispatch"
+version = "0.1.0"
+description = "Hyper-efficient local-first code dispatch with cloud escalation"
+requires-python = ">=3.10"
+dependencies = ["pyyaml>=6.0"]
+
+[project.optional-dependencies]
+cloud = [
+    "google-cloud-run>=0.10",
+    "google-cloud-functions>=1.16",
+    "google-auth>=2.28",
+]
+dev = ["pytest>=8.0", "pytest-cov>=5.0"]
+
+[tool.setuptools.packages.find]
+include = ["sovereign_dispatch*"]

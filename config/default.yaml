@@ -1,0 +1,32 @@
+# Sovereign Dispatch - Default Configuration
+# Override via SOVEREIGN_CONFIG env var or pass config_path to dispatch()
+
+local:
+  timeout_seconds: 30
+  max_memory_mb: 256
+  max_concurrent: 4
+  python_path: null  # auto-detect
+
+cloud:
+  provider: gcp
+  project_id: null
+  region: us-central1
+  # Only escalate when local would struggle
+  escalation_threshold_seconds: 10
+  escalation_threshold_memory_mb: 512
+
+budget:
+  max_daily_usd: 5.00
+  max_monthly_usd: 50.00
+  warn_at_percent: 80
+  ledger_path: ~/.sovereign/ledger.db
+
+cache:
+  enabled: true
+  db_path: ~/.sovereign/cache.db
+  max_size_mb: 256
+  ttl_seconds: 3600
+
+compress:
+  diff_only: true
+  min_compress_bytes: 1024
