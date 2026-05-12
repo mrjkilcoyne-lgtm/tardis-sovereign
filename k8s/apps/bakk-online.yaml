@@ -1,0 +1,87 @@
+# BAKK Online — Social infrastructure for CANZUK citizens
+# Next.js app with premium tier (£10/mo)
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bakk-online
+  namespace: tardis-apps
+  labels:
+    app: bakk-online
+    part-of: tardis-sovereign
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bakk-online
+  template:
+    metadata:
+      labels:
+        app: bakk-online
+    spec:
+      containers:
+        - name: bakk-online
+          image: ghcr.io/mrjkilcoyne-lgtm/bakk-online:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: DATABASE_URL
+              value: "postgresql://tardis:$(POSTGRES_PASSWORD)@postgres.tardis-core:5432/tardis"
+            - name: REDIS_URL
+              value: "redis://redis.tardis-core:6379"
+            - name: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: bakk-online-secrets
+                  key: STRIPE_PUBLISHABLE_KEY
+                  optional: true
+            - name: STRIPE_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: bakk-online-secrets
+                  key: STRIPE_SECRET_KEY
+                  optional: true
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bakk-online
+  namespace: tardis-apps
+spec:
+  selector:
+    app: bakk-online
+  ports:
+    - port: 80
+      targetPort: 3000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: bakk-online
+  namespace: tardis-apps
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - bakk.online
+      secretName: bakk-online-tls
+  rules:
+    - host: bakk.online
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: bakk-online
+                port:
+                  number: 80

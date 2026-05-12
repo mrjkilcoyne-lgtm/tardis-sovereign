@@ -1,0 +1,29 @@
+# Namespaces for the TARDIS ecosystem
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: tardis-core
+  labels:
+    part-of: tardis-sovereign
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: tardis-apps
+  labels:
+    part-of: tardis-sovereign
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: tardis-ai
+  labels:
+    part-of: tardis-sovereign
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: tardis-monitoring
+  labels:
+    part-of: tardis-sovereign

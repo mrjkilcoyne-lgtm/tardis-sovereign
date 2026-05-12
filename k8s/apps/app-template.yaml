@@ -1,0 +1,102 @@
+# =============================================================
+# TARDIS App Deployment Template
+# =============================================================
+# Copy this file and replace all {{PLACEHOLDERS}} for each app:
+#   {{APP_NAME}}    — e.g., claimourlife, hex-inventions, bakk-online
+#   {{IMAGE}}       — e.g., ghcr.io/mrjkilcoyne-lgtm/claimourlife:latest
+#   {{PORT}}        — e.g., 3000
+#   {{DOMAIN}}      — e.g., claimourlife.tardis-sovereign.com
+#   {{ENV_VARS}}    — app-specific environment variables
+# =============================================================
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{APP_NAME}}"
+  namespace: tardis-apps
+  labels:
+    app: "{{APP_NAME}}"
+    part-of: tardis-sovereign
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: "{{APP_NAME}}"
+  template:
+    metadata:
+      labels:
+        app: "{{APP_NAME}}"
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{PORT}}"
+    spec:
+      containers:
+        - name: "{{APP_NAME}}"
+          image: "{{IMAGE}}"
+          ports:
+            - containerPort: "{{PORT}}"
+          env:
+            - name: DATABASE_URL
+              value: "postgresql://tardis:$(POSTGRES_PASSWORD)@postgres.tardis-core:5432/tardis"
+            - name: REDIS_URL
+              value: "redis://redis.tardis-core:6379"
+          envFrom:
+            - secretRef:
+                name: "{{APP_NAME}}-secrets"
+                optional: true
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "256Mi"
+              cpu: "250m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: "{{PORT}}"
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: "{{PORT}}"
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{{APP_NAME}}"
+  namespace: tardis-apps
+spec:
+  selector:
+    app: "{{APP_NAME}}"
+  ports:
+    - port: 80
+      targetPort: "{{PORT}}"
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: "{{APP_NAME}}"
+  namespace: tardis-apps
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - "{{DOMAIN}}"
+      secretName: "{{APP_NAME}}-tls"
+  rules:
+    - host: "{{DOMAIN}}"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: "{{APP_NAME}}"
+                port:
+                  number: 80
